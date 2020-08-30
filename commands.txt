@@ -1,0 +1,26 @@
+#Kubernetes容器应用监控
+#创建dynatrace的命名空间
+kubectl create namespace dynatrace
+
+#创建dynatrace oneagent operator
+kubectl apply -f dynatrace-oneagent-operator.yaml
+kubectl -n dynatrace logs -f deployment/dynatrace-oneagent-operator
+
+#创建与Dynatrace Server访问的Token作为Secret
+kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=atUtOUn4Qv6vbC_n1a2NJ" --from-literal="paasToken=XUH5aE64QVyIk2dNFOs5k"
+
+#创建dynatrace oneagent的后台守护容器
+kubectl apply -f cr.yaml
+
+#部署easytravel应用
+kubectl apply -f easytravel-k8s-tencent.yaml
+
+
+#Kubernetes集群监控
+kubectl create namespace dynatrace
+
+kubectl apply -f kubernetes-monitoring-service-account.yaml
+
+kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'
+
+kubectl get secret $(kubectl get sa dynatrace-monitoring -o jsonpath='{.secrets[0].name}' -n dynatrace) -o jsonpath='{.data.token}' -n dynatrace | base64 --decode
