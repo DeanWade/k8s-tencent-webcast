@@ -7,7 +7,7 @@ kubectl apply -f dynatrace-oneagent-operator.yaml
 kubectl -n dynatrace logs -f deployment/dynatrace-oneagent-operator
 
 #创建与Dynatrace Server访问的Token作为Secret
-kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=atUtOUn4Qv6vbC_n1a2NJ" --from-literal="paasToken=XUH5aE64QVyIk2dNFOs5k"
+kubectl -n dynatrace create secret generic oneagent --from-literal="apiToken=**************" --from-literal="paasToken=**************"
 
 #创建dynatrace oneagent的后台守护容器
 kubectl apply -f cr.yaml

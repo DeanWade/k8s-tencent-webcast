@@ -54,7 +54,7 @@ metadata:
   name: easytravel-frontend
   namespace: easytravel
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       easytravel-tier: easytravel-frontend
