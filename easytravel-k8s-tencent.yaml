@@ -31,16 +31,18 @@ spec:
         - env:
             - name: ET_DATABASE_LOCATION
               value: easytravel-mongodb-service:27017
+            - name: ET_MONGO_AUTH_DB
+              value: admin
+            - name: ET_DATABASE_USER
+              value: etAdmin
+            - name: ET_DATABASE_PASSWORD
+              value: adminadmin
             - name: DT_CLUSTER_ID
               value: easytravel-backend
           image: ccr.ccs.tencentyun.com/dynatrace/easytravel-backend
           imagePullPolicy: Always
           name: easytravel-backend
           ports:
-            - containerPort: 8009
-              protocol: TCP
-            - containerPort: 8005
-              protocol: TCP
             - containerPort: 8080
               protocol: TCP
 ---
@@ -79,7 +81,43 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
-            - containerPort: 8280
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    easytravel-tier: easytravel-nginx
+  name: easytravel-nginx
+  namespace: easytravel
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      easytravel-tier: easytravel-nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        easytravel-tier: easytravel-nginx
+        tier: nginx
+    spec:
+      containers:
+        - env:
+            - name: ET_FRONTEND_LOCATION
+              value: easytravel-frontend-service:8080
+            - name: ET_BACKEND_LOCATION
+              value: easytravel-backend-service:8080
+            - name: DT_CLUSTER_ID
+              value: easytravel-nginx
+          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-nginx
+          imagePullPolicy: Always
+          name: easytravel-nginx
+          ports:
+            - containerPort: 80
               protocol: TCP
 ---
 apiVersion: apps/v1
@@ -111,8 +149,8 @@ spec:
         - env:
             - name: DT_CLUSTER_ID
               value: easytravel-mongodb
-          image: dynatrace/easytravel-mongodb
-          name: ccr.ccs.tencentyun.com/easytravel-mongodb
+          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-mongodb
+          name: easytravel-mongodb
           ports:
             - containerPort: 27017
               protocol: TCP
@@ -143,13 +181,21 @@ spec:
     spec:
       containers:
         - env:
+            - name: ET_WWW_URL
+              value: http://easytravel-nginx-service:80        
             - name: ET_FRONTEND_URL
               value: http://easytravel-frontend-service:8080
+            - name: ET_BACKEND_URL
+              value: http://easytravel-backend-service:8080
+            - name: ET_PROBLEMS_DELAY
+              value: "7500"
+            - name: ET_VISIT_NUMBER
+              value: "5"
             - name: DT_CLUSTER_ID
               value: easytravel-loadgen
             - name: ET_PROBLEMS
               value: BadCacheSynchronization,CPULoad,DatabaseCleanup,DatabaseSlowdown,FetchSizeTooSmall,JourneySearchError404,JourneySearchError500,LoginProblems,MobileErrors,TravellersOptionBox
-          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-loadgen:latest
+          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-loadgen
           name: easytravel-loadgen
 ---
 apiVersion: v1
@@ -165,14 +211,6 @@ spec:
       port: 8080
       protocol: TCP
       targetPort: 8080
-    - name: port3
-      port: 8009
-      protocol: TCP
-      targetPort: 8009
-    - name: port4
-      port: 8005
-      protocol: TCP
-      targetPort: 8005
   selector:
     easytravel-tier: easytravel-backend
   sessionAffinity: None
@@ -186,18 +224,36 @@ metadata:
   name: easytravel-frontend-service
   namespace: easytravel
 spec:
-  externalTrafficPolicy: Cluster
   ports:
     - name: port1
       port: 8080
       protocol: TCP
       targetPort: 8080
-    - name: port2
-      port: 8280
-      protocol: TCP
-      targetPort: 8280
   selector:
     easytravel-tier: easytravel-frontend
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    easytravel-tier: easytravel-nginx
+  name: easytravel-nginx-service
+  namespace: easytravel
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+    - name: port1
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: port2
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    easytravel-tier: easytravel-nginx
   sessionAffinity: None
   type: LoadBalancer
 ---

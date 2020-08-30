@@ -15,6 +15,8 @@ kubectl apply -f cr.yaml
 #部署easytravel应用
 kubectl apply -f easytravel-k8s-tencent.yaml
 
+#删除easytravel应用
+kubectl delete -f easytravel-k8s-tencent.yaml
 
 #Kubernetes集群监控
 kubectl create namespace dynatrace
