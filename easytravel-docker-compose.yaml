@@ -1,61 +1,68 @@
 mongodb:
   hostname: easytravel-mongodb
   container_name: mongodb
-  image: "dynatrace/easytravel-mongodb"
+  image: "ccr.ccs.tencentyun.com/dynatrace/easytravel-mongodb"
   ports:
-    - 27017
-    - 28017
+    - "27017:27017"
+    - "28017:28017"
+  environment:
+    DT_CLUSTER_ID: "easytravel-mongodb"
 
 backend:
   hostname: easytravel-backend
   container_name: backend
-  image: "dynatrace/easytravel-backend"
+  image: "ccr.ccs.tencentyun.com/dynatrace/easytravel-backend"
   ports:
     - 8080
   links:
     - mongodb
   environment:
-    CATALINA_OPTS: "-Dconfig.apmServerDefault=${ET_APM_SERVER_DEFAULT} -Xmx256m"
+    CATALINA_OPTS: "-Dconfig.apmServerDefault=APM -Xmx256m"
     ET_DATABASE_LOCATION: "easytravel-mongodb:27017"
     ET_MONGO_AUTH_DB: "admin"
     ET_DATABASE_USER: "etAdmin"
     ET_DATABASE_PASSWORD: "adminadmin"
+    DT_CLUSTER_ID: "easytravel-backend"
 
 frontend:
   hostname: easytravel-frontend
   container_name: frontend
-  image: "dynatrace/easytravel-frontend"
+  image: "ccr.ccs.tencentyun.com/dynatrace/easytravel-frontend"
   ports:
     - 8080
   links:
     - backend
     - mongodb
   environment:
-    CATALINA_OPTS: "-Dconfig.apmServerDefault=${ET_APM_SERVER_DEFAULT} -Xmx525m"
+    CATALINA_OPTS: "-Dconfig.apmServerDefault=APM -Xmx525m"
     ET_BACKEND_URL: "http://easytravel-backend:8080"
+    DT_CLUSTER_ID: "easytravel-frontend"
 
 www:
   hostname: easytravel-www
   container_name: www
-  image: "dynatrace/easytravel-nginx"
+  image: "ccr.ccs.tencentyun.com/dynatrace/easytravel-nginx"
   ports:
     - "80:80"
+    - "8080:8080"    
   links:
     - frontend
     - backend
   environment:
     ET_FRONTEND_LOCATION: "easytravel-frontend:8080"
     ET_BACKEND_LOCATION: "easytravel-backend:8080"
+    DT_CLUSTER_ID: "easytravel-www"
 
 loadgen:
   container_name: loadgen
-  image: "dynatrace/easytravel-loadgen"
+  image: "ccr.ccs.tencentyun.com/dynatrace/easytravel-loadgen"
   links:
     - backend
     - frontend
     - www
   environment:
-    ET_APM_SERVER_DEFAULT: "${ET_APM_SERVER_DEFAULT}"
+    ET_APM_SERVER_DEFAULT: "APM"
+    DT_CLUSTER_ID: "easytravel-loadgen"
     ET_FRONTEND_URL: "http://easytravel-www:80"
     ET_BACKEND_URL: "http://easytravel-www:8080"
     ET_PROBLEMS: "BadCacheSynchronization,CPULoad,DatabaseCleanup,DatabaseSlowdown,FetchSizeTooSmall,JourneySearchError404,JourneySearchError500,LoginProblems,MobileErrors,TravellersOptionBox"
