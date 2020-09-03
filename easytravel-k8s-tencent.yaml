@@ -80,7 +80,7 @@ spec:
   template:
     metadata:
       annotations:
-        oneagent.dynatrace.com/inject: "true"
+        oneagent.dynatrace.com/inject: "false"
       labels:
         easytravel-tier: easytravel-frontend
         tier: frontend
@@ -95,7 +95,7 @@ spec:
           resources:
             limits:
               cpu: "1"
-              memory: "2048Mi"
+              memory: "4096Mi"
             requests:
               cpu: "0.5"
               memory: "1024Mi"
@@ -216,6 +216,8 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      annotations:
+        oneagent.dynatrace.com/inject: "true"
       labels:
         app: loadgenerator
     spec:
