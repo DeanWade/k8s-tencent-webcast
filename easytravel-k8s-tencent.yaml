@@ -4,8 +4,8 @@ metadata:
   annotations:
     oneagent.dynatrace.com/technologies: "java"
     oneagent.dynatrace.com/inject: "false"
-  labels:
-    oneagent.dynatrace.com/instance: oneagentapm
+  # labels:
+  #   oneagent.dynatrace.com/instance: oneagentapm
   name: easytravel
 ---
 apiVersion: apps/v1
@@ -46,14 +46,14 @@ spec:
               value: adminadmin
             - name: DT_CLUSTER_ID
               value: easytravel-backend
-          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-backend
+          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-backend:latest
           resources:
             limits:
-              cpu: "1"
-              memory: "2048Mi"
-            requests:
               cpu: "0.5"
               memory: "1024Mi"
+            requests:
+              cpu: "0.25"
+              memory: "512Mi"
           imagePullPolicy: Always
           name: easytravel-backend
           ports:
@@ -68,7 +68,7 @@ metadata:
   name: easytravel-frontend
   namespace: easytravel
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       easytravel-tier: easytravel-frontend
@@ -91,14 +91,14 @@ spec:
               value: http://easytravel-backend-service:8080
             - name: DT_CLUSTER_ID
               value: easytravel-frontend
-          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-frontend
+          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-frontend:latest
           resources:
             limits:
-              cpu: "1"
-              memory: "4096Mi"
-            requests:
               cpu: "0.5"
               memory: "1024Mi"
+            requests:
+              cpu: "0.25"
+              memory: "256Mi"
           imagePullPolicy: Always
           name: easytravel-frontend
           ports:
@@ -139,14 +139,14 @@ spec:
               value: easytravel-backend-service:8080
             - name: DT_CLUSTER_ID
               value: easytravel-nginx
-          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-nginx
+          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-nginx:latest
           resources:
             limits:
-              cpu: "1"
-              memory: "1024Mi"
-            requests:
               cpu: "0.5"
               memory: "512Mi"
+            requests:
+              cpu: "0.25"
+              memory: "256Mi"
           imagePullPolicy: Always
           name: easytravel-nginx
           ports:
@@ -182,7 +182,7 @@ spec:
         - env:
             - name: DT_CLUSTER_ID
               value: easytravel-mongodb
-          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-mongodb
+          image: ccr.ccs.tencentyun.com/dynatrace/easytravel-mongodb:latest
           resources:
             limits:
               cpu: "1"
@@ -297,10 +297,12 @@ spec:
       port: 80
       protocol: TCP
       targetPort: 80
+      # nodePort: 30080
     - name: port2
       port: 8080
       protocol: TCP
       targetPort: 8080
+      # nodePort: 31080
   selector:
     easytravel-tier: easytravel-nginx
   sessionAffinity: None
